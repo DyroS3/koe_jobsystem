@@ -15,3 +15,7 @@ client_scripts {
  }
 
  shared_script '@ox_lib/init.lua'
+
+server_export 'addjob'
+server_export 'removejob'
+server_export 'getjobs'

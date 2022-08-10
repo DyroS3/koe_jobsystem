@@ -53,7 +53,7 @@ end)
 RegisterNetEvent('koe_jobsystem:openMenu')
 AddEventHandler('koe_jobsystem:openMenu', function(jobs)
 	local CurrentJobLabel = ESX.PlayerData.job.label
-		
+
 	local options = {
 		{
 			title = 'Current Job: '..CurrentJobLabel
@@ -69,22 +69,30 @@ AddEventHandler('koe_jobsystem:openMenu', function(jobs)
 		},
 	}
 
-	for k, v in pairs(jobs) do
-		print(v.label)
-		table.insert(options, 
-			{
-				title = v.job_label,
-				description = 'Rank: '..v.rank_label,
-				event = 'koe_jobsystem:remove',
-				args = {
-					job = v.job,
-					grade = v.grade,
-					rank_label = v.rank_label,
-					job_label = v.job_label
-                }
-			}
-        )	
+	if next(jobs) ~= nil then
+		for k, v in pairs(jobs) do
+			table.insert(options, 
+				{
+					title = v.job_label,
+					description = 'Rank: '..v.rank_label,
+					event = 'koe_jobsystem:remove',
+					args = {
+						job = v.job,
+						grade = v.grade,
+						rank_label = v.rank_label,
+						job_label = v.job_label
+					}
+				}
+			)	
 
+		end
+	else
+		table.insert(options, 
+				{
+					title = 'Unemployed',
+					description = 'Go out there and get work!'
+				}
+			)
 	end
 
 	lib.registerContext({
@@ -223,6 +231,7 @@ AddEventHandler('koe_jobsystem:openEmployeeMenu', function(data)
 			{
 				title = v.firstname..' '..v.lastname,
 				description = 'Rank: '..v.joblabel,
+				metadata = {'Click for more options.'},
 				args = {
 					identifier = v.identifier
 				}
@@ -310,14 +319,26 @@ RegisterNetEvent('koe_jobsystem:addFunds')
 AddEventHandler('koe_jobsystem:addFunds', function(data)
 	local currentBalance = data.currentBalance
 	
-	print(currentBalance)
+	TriggerEvent('koe_jobsystem:addFundsKeyboard', currentBalance)
 end)
 
 RegisterNetEvent('koe_jobsystem:removeFunds')
 AddEventHandler('koe_jobsystem:removeFunds', function(data)
 	local currentBalance = data.currentBalance
 	
-	print(currentBalance)
+	TriggerServerEvent('koe_jobsystem:RemoveBusinessFunds', currentBalance)
+end)
+
+RegisterNetEvent('koe_jobsystem:addFundsKeyboard')
+AddEventHandler('koe_jobsystem:addFundsKeyboard', function(currentBalance)
+	local input = lib.inputDialog('Enter Amount', {'Enter Amount'})
+
+	if input then
+		local enteredAmount = tonumber(input[1])
+		local amountToAdd = enteredAmount + currentBalance
+
+		TriggerServerEvent('koe_jobsystem:addBusinessFunds', amountToAdd, enteredAmount)
+	end
 end)
 
 

@@ -14,3 +14,7 @@
 -- ╚═════╝░░╚════╝░╚═╝░░╚═╝╚═╝╚═╝░░░░░░░░╚═╝░░░╚═════╝░
 
 Config = {}
+
+Config.MaxJobs = 2
+Config.Unemployed = 'unemployed'
+Config.UnemployedGrade = 0
