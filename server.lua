@@ -52,7 +52,7 @@ AddEventHandler('koe_jobsystem:GetAllJobs', function(CurrentJobName, CurrentJobG
     local identifier =  ESX.GetPlayerFromId(source).identifier
     local employees = {}
     local employeeLabel = nil
-
+    local name = {}
     MySQL.query('SELECT * FROM koe_jobsystem where job = ?', {CurrentJobName}, function(allresult)
 
         for k, v in pairs(allresult) do
@@ -73,7 +73,8 @@ AddEventHandler('koe_jobsystem:GetAllJobs', function(CurrentJobName, CurrentJobG
                                     joblabel = v3.label,
             
                                 }
-                        )
+                            )
+
                         TriggerClientEvent('koe_jobsystem:openBossMenu',src, employees, CurrentJobName)
                         end
                     end
@@ -93,7 +94,7 @@ AddEventHandler('koe_jobsystem:getBusinessFunds', function(CurrentJobName, Curre
         for k, v in pairs(funds) do
             local accountBalance = v.money
 
-            TriggerClientEvent('koe_jobsystem:openBusinessMenu', src, accountBalance)
+            TriggerClientEvent('koe_jobsystem:openBusinessMenu', src, accountBalance, society)
         end
     end)
 
@@ -133,12 +134,12 @@ function addjob(identifier, job, grade)
             count = count + 1
         end
 
-        local test = exports.oxmysql:scalar_async('SELECT job FROM koe_jobsystem WHERE identifier = @identifier AND job = @job', {
+        local getjob = exports.oxmysql:scalar_async('SELECT job FROM koe_jobsystem WHERE identifier = @identifier AND job = @job', {
             ['@identifier'] = identifier,
             ['@job'] = job
         })
 
-        if test then hasjob = true end
+        if getjob then hasjob = true end
 
         if count < Config.MaxJobs and hasjob == false then
             if job ~= 'unemployed' then
@@ -167,15 +168,15 @@ function getjobs(identifier)
 end
 
 RegisterNetEvent('koe_jobsystem:addBusinessFunds')
-AddEventHandler('koe_jobsystem:addBusinessFunds', function(amountToAdd, enteredAmount)
+AddEventHandler('koe_jobsystem:addBusinessFunds', function(amountToAdd, enteredAmount, society)
     local src = source
     local xPlayer = ESX.GetPlayerFromId(src)
-
+ 
     if xPlayer.getMoney() >= enteredAmount then
 
-        TriggerEvent('esx_addonaccount:getSharedAccount', 'society_ambulance', function(account)
+        TriggerEvent('esx_addonaccount:getSharedAccount', society, function(account)
             if account then
-                account.addMoney(amountToAdd)
+                account.addMoney(enteredAmount)
                 xPlayer.removeMoney(enteredAmount)
             end
         end)
@@ -187,15 +188,74 @@ AddEventHandler('koe_jobsystem:addBusinessFunds', function(amountToAdd, enteredA
 end)
 
 RegisterNetEvent('koe_jobsystem:RemoveBusinessFunds')
-AddEventHandler('koe_jobsystem:RemoveBusinessFunds', function(currentBalance)
-    TriggerEvent('esx_addonaccount:getSharedAccount', 'society_ambulance', function(account)
+AddEventHandler('koe_jobsystem:RemoveBusinessFunds', function(enteredAmount2, society)
+    local src = source
+    local xPlayer = ESX.GetPlayerFromId(src)
+
+    TriggerEvent('esx_addonaccount:getSharedAccount', society, function(account)
         if account then
-            account.removeMoney(currentBalance)
+            account.removeMoney(enteredAmount2)
+            xPlayer.addMoney(enteredAmount2)
         end
+    end)
+
+end)
+
+RegisterNetEvent('koe_jobsystem:hireEmployeeServer')
+AddEventHandler('koe_jobsystem:hireEmployeeServer', function(enteredID, jobtoHire)
+    local target = ESX.GetPlayerFromId(enteredID) 
+
+    if target.identifier ~= nil then
+        target.setJob(jobtoHire, 0)
+    end  
+end)
+
+RegisterNetEvent('koe_jobsystem:fireEmployeeServer')
+AddEventHandler('koe_jobsystem:fireEmployeeServer', function(iden, jobtoFire)
+    local src = source
+    local xPlayer = ESX.GetPlayerFromIdentifier(iden)
+    local unemployed = Config.Unemployed
+    local grade = Config.UnemployedGrade
+
+    MySQL.query('DELETE FROM koe_jobsystem WHERE identifier = @identifier AND job = @job',{ ['@identifier'] = iden, ['@job'] = jobtoFire }, function()
+
+    end)
+
+    if xPlayer ~= nil then
+        xPlayer.setJob(unemployed, grade)
+    end
+
+end)
+
+RegisterNetEvent('koe_jobsystem:getRanksForJob')
+AddEventHandler('koe_jobsystem:getRanksForJob', function(target, jobName)
+    local src = source
+    local jobGrades = {}
+    MySQL.query('SELECT label FROM job_grades WHERE job_name = @job',{ ['@job'] = jobName}, function(jobRanks)
+
+        for k, v in ipairs(jobRanks) do
+            
+            table.insert(jobGrades, v)
+            
+        end
+        table.sort(jobGrades, function(a,b) return a.label < b.label end)
+
+        TriggerClientEvent('koe_jobsystem:promoteDemoteMenu',src,  jobGrades, jobName, target)
     end)
 end)
 
+RegisterNetEvent('koe_jobsystem:setRank')
+AddEventHandler('koe_jobsystem:setRank', function(newRank, jobName, target)
+    local src = source
+    local xPlayer = ESX.GetPlayerFromIdentifier(target)
 
+    MySQL.query('DELETE FROM koe_jobsystem WHERE identifier = @identifier AND job = @job',{ ['@identifier'] = target, ['@job'] = jobName }, function()
 
+    end)
 
+    local newGrade = exports.oxmysql:scalar_async('SELECT grade FROM job_grades WHERE label = @newRank', {
+        ['@newRank'] = newRank
+    })
 
+    xPlayer.setJob(jobName, newGrade)
+end)
