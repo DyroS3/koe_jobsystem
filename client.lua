@@ -50,14 +50,13 @@ RegisterCommand('bossmenu', function(source)
 	for k, v in pairs(Config.BossRank) do
 		if CurrentJobGrade == v then
 			TriggerServerEvent('koe_jobsystem:GetAllJobs', CurrentJobName, CurrentJobGradeLabel) 
-			break
 		end
 	end
 
 end)
 
 RegisterNetEvent('koe_jobsystem:openMenu')
-AddEventHandler('koe_jobsystem:openMenu', function(jobs)
+AddEventHandler('koe_jobsystem:openMenu', function(jobs, identifier)
 	local CurrentJobLabel = ESX.PlayerData.job.label
 
 	local options = {
@@ -89,7 +88,8 @@ AddEventHandler('koe_jobsystem:openMenu', function(jobs)
 						job = v.job,
 						grade = v.grade,
 						rank_label = v.rank_label,
-						job_label = v.job_label
+						job_label = v.job_label,
+						identifier = identifier
 					}
 				}
 			)	
@@ -150,7 +150,9 @@ AddEventHandler('koe_jobsystem:remove', function(data)
 					title = 'Yes',
 					event = 'koe_jobsystem:removeJob',
 					args = {
-						job = data.job
+						job = data.job,
+						identifier = data.identifier,
+						grade = data.grade,
 					}
 				},
 			}
@@ -163,6 +165,8 @@ end)
 RegisterNetEvent('koe_jobsystem:removeJob')
 AddEventHandler('koe_jobsystem:removeJob', function(data)
 	local selectedJob = data.job
+	identifier = data.identifier
+	grade = data.grade
 
 	lib.notify({
 		title = 'Job Menu',
@@ -172,7 +176,7 @@ AddEventHandler('koe_jobsystem:removeJob', function(data)
 		position = 'top'
 	})
 
-	TriggerServerEvent('koe_jobsystem:RemoveJob', selectedJob)
+	TriggerServerEvent('koe_jobsystem:RemoveJob', selectedJob, identifier, grade)
 end)
 
 RegisterNetEvent('koe_jobsystem:clockIn')

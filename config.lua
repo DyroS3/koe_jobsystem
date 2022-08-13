@@ -19,7 +19,7 @@ Config.MaxJobs = 2
 Config.Unemployed = 'unemployed'
 Config.UnemployedGrade = 0
 
-Config.BossRank = {"boss", "deputy_sheriff", "deputy_chief", "co_director"}
+Config.BossRank = {"boss", "deputy_sheriff", "deputy_chief", "co_director", "secretary", "captain", "sheriff"}
 
 
 

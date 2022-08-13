@@ -31,7 +31,7 @@ AddEventHandler('koe_jobsystem:GetJobs', function()
                                 }
                             )
 
-                            TriggerClientEvent('koe_jobsystem:openMenu',src, jobs)
+                            TriggerClientEvent('koe_jobsystem:openMenu',src, jobs, identifier)
                         end
                     end)
 
@@ -51,8 +51,7 @@ AddEventHandler('koe_jobsystem:GetAllJobs', function(CurrentJobName, CurrentJobG
     local src = source
     local identifier =  ESX.GetPlayerFromId(source).identifier
     local employees = {}
-    local employeeLabel = nil
-    local name = {}
+
     MySQL.query('SELECT * FROM koe_jobsystem where job = ?', {CurrentJobName}, function(allresult)
 
         for k, v in pairs(allresult) do
@@ -101,11 +100,12 @@ AddEventHandler('koe_jobsystem:getBusinessFunds', function(CurrentJobName, Curre
 end)
 
 RegisterNetEvent('koe_jobsystem:RemoveJob')
-AddEventHandler('koe_jobsystem:RemoveJob', function(selectedJob)
+AddEventHandler('koe_jobsystem:RemoveJob', function(selectedJob, identifier, grade)
     local src = source
     local xPlayer = ESX.GetPlayerFromId(src)
 
-    MySQL.query('DELETE FROM koe_jobsystem WHERE job = ? ', {selectedJob}, function()
+    MySQL.query('DELETE FROM koe_jobsystem WHERE identifier = @identifier AND job = @job AND grade = @grade',{ ['@identifier'] = identifier, ['@job'] = selectedJob, ['@grade'] = grade }, function()
+
     end)
     
     xPlayer.setJob(Config.Unemployed, Config.UnemployedGrade)
