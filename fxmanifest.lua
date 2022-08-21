@@ -1,6 +1,8 @@
 fx_version 'adamant'
 game 'gta5'
-version '1.0.0'
+
+version '1.1.1'
+
 lua54 'yes'
 
 client_scripts {
@@ -19,3 +21,9 @@ client_scripts {
 server_export 'addjob'
 server_export 'removejob'
 server_export 'getjobs'
+
+escrow_ignore {
+	'client.lua',
+	'config.lua',
+	'server.lua',
+  }

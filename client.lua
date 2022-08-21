@@ -231,6 +231,15 @@ AddEventHandler('koe_jobsystem:openBossMenu', function(employees, CurrentJobName
 					CurrentJobName = CurrentJobName
 				}
 			},
+			{
+				title = 'Salary Management',
+				arrow = true,
+				event = 'koe_jobsystem:getSalaryData',
+				icon = 'fas fa-money-check-dollar',
+				args = {
+					CurrentJobName = CurrentJobName
+				}
+			},
 		},
 	})
 	lib.showContext('bossmenu')
@@ -364,6 +373,55 @@ AddEventHandler('koe_jobsystem:setNewRank', function(data)
 	TriggerServerEvent('koe_jobsystem:setRank', newRank, jobName, target)
 end)
 
+RegisterNetEvent('koe_jobsystem:getSalaryData')
+AddEventHandler('koe_jobsystem:getSalaryData', function(data)
+	jobToGetSalaries = data.CurrentJobName
+	TriggerServerEvent('koe_kobsystem:getSalaries', jobToGetSalaries)
+end)
+
+RegisterNetEvent('koe_jobsystem:salaryMenu')
+AddEventHandler('koe_jobsystem:salaryMenu', function(Salaries)
+	local options4 = {}
+
+	for k, v in pairs(Salaries) do
+
+		table.insert(options4, 
+			{
+				title = v.label..' - Rank: '..v.grade ,
+				description = ' $'..v.salary,
+				metadata = {'Click to set pay for this rank.'},
+				event = 'koe_jobsystem:changeSalary',
+				args = {
+					salarylabel = v.label,
+					salaryJob = v.job_name,
+					salary = v.salary
+				}
+			}
+		)	
+	
+	end
+
+	lib.registerContext({
+		id = 'salaryMenu',
+		title = 'Employee Menu',
+		menu = 'bossmenu',
+		options = options4,
+	})
+	
+	lib.showContext('salaryMenu')
+end)
+
+RegisterNetEvent('koe_jobsystem:changeSalary')
+AddEventHandler('koe_jobsystem:changeSalary', function(data)
+	local newSalary = lib.inputDialog('Enter new salary amount ex: 200', {'Amount'})
+	local jobToChangeSalary = data.salarylabel
+
+	if newSalary then
+		local enteredSalary = tonumber(newSalary[1])
+		TriggerServerEvent('koe_jobsystem:setNewSalary', enteredSalary, jobToChangeSalary) 
+	end
+end)
+
 RegisterNetEvent('koe_jobsystem:hireEmployee')
 AddEventHandler('koe_jobsystem:hireEmployee', function(data)
 	local enterID = lib.inputDialog('Enter ID of the person', {'ID'})
@@ -488,10 +546,3 @@ AddEventHandler('koe_jobsystem:removeFundsKeyboard', function(currentBalance, so
 		TriggerServerEvent('koe_jobsystem:RemoveBusinessFunds', enteredAmount2, society)
 	end
 end)
-
-
-
-
-
-
-

@@ -259,3 +259,31 @@ AddEventHandler('koe_jobsystem:setRank', function(newRank, jobName, target)
 
     xPlayer.setJob(jobName, newGrade)
 end)
+
+
+RegisterNetEvent('koe_kobsystem:getSalaries')
+AddEventHandler('koe_kobsystem:getSalaries', function(jobToGetSalaries)
+    local src = source
+
+    local Salaries = {}
+    MySQL.query('SELECT * FROM job_grades WHERE job_name = @job',{ ['@job'] = jobToGetSalaries}, function(jobSalaries)
+
+        for k, v in pairs(jobSalaries) do
+
+            table.insert(Salaries, v)
+            
+        end
+
+        TriggerClientEvent('koe_jobsystem:salaryMenu',src,  Salaries)
+    end)
+
+end)
+
+RegisterNetEvent('koe_jobsystem:setNewSalary')
+AddEventHandler('koe_jobsystem:setNewSalary', function(enteredSalary, jobToChangeSalary)
+
+    MySQL.query('UPDATE job_grades SET salary = @salary WHERE label = @label',{ ['@salary'] = enteredSalary, ['@label'] = jobToChangeSalary}, function()
+
+    end)
+
+end)
