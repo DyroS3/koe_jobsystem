@@ -19,12 +19,12 @@ Config.MaxJobs = 2
 Config.Unemployed = 'unemployed'
 Config.UnemployedGrade = 0
 
-Config.BossRank = {"boss", "deputy_chief", "co_director", "secretary", "sheriff", 'co_boss', 'supervisor', 'captain'}
+Config.BossRank = {"boss", "deputy_chief", "co_director", "secretary", "sheriff", 'co_boss', 'supervisor', 'captain', 'firechief'}
 
 
 
 
-
+--Be sure to add your discord webook in server.lua for money logs
 
 
 ------------------------------------------------------------------------------

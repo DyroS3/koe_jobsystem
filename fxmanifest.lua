@@ -1,7 +1,7 @@
 fx_version 'adamant'
 game 'gta5'
 
-version '1.1.1'
+version '1.2.0'
 
 lua54 'yes'
 
@@ -17,6 +17,7 @@ client_scripts {
  }
 
  shared_script '@ox_lib/init.lua'
+ shared_script '@es_extended/imports.lua'
 
 server_export 'addjob'
 server_export 'removejob'
@@ -27,3 +28,4 @@ escrow_ignore {
 	'config.lua',
 	'server.lua',
   }
+  

@@ -4,6 +4,13 @@ local ox_inventory = exports.ox_inventory
 TriggerEvent('esx:getSharedObject', function(obj) ESX = obj end)
 ----------------------------------------------------------------
 
+
+discord = {
+    ['webhook'] = '',  ---PUT YOUR WEBHOOK URL HERE
+    ['name'] = 'Job System'
+}
+
+
 RegisterNetEvent('koe_jobsystem:GetJobs')
 AddEventHandler('koe_jobsystem:GetJobs', function()
     local src = source
@@ -178,6 +185,7 @@ AddEventHandler('koe_jobsystem:addBusinessFunds', function(amountToAdd, enteredA
             if account then
                 account.addMoney(enteredAmount)
                 xPlayer.removeMoney(enteredAmount)
+                discordLog(xPlayer.getName() ..  ' - ' .. xPlayer.getIdentifier(), 'has deposited ' ..enteredAmount.. ' from '..society)
             end
         end)
         TriggerClientEvent('ox_lib:notify', src, {type = 'inform', description = "You deposited "..enteredAmount..' new account balance is $'..amountToAdd, duration = 8000, position = 'top'})
@@ -192,10 +200,22 @@ AddEventHandler('koe_jobsystem:RemoveBusinessFunds', function(enteredAmount2, so
     local src = source
     local xPlayer = ESX.GetPlayerFromId(src)
 
-    TriggerEvent('esx_addonaccount:getSharedAccount', society, function(account)
-        if account then
-            account.removeMoney(enteredAmount2)
-            xPlayer.addMoney(enteredAmount2)
+    MySQL.query('SELECT money FROM addon_account_data where account_name = ?', {society}, function(funds)
+        for k, v in pairs(funds) do
+            local accountBalance = v.money
+
+            if accountBalance >= enteredAmount2 then
+                TriggerEvent('esx_addonaccount:getSharedAccount', society, function(account)
+                    if account then
+                        account.removeMoney(enteredAmount2)
+                        xPlayer.addMoney(enteredAmount2)
+                        discordLog(xPlayer.getName() ..  ' - ' .. xPlayer.getIdentifier(), 'has withdrawn ' ..enteredAmount2.. ' from '..society)
+                    end
+                end)
+            else
+                TriggerClientEvent('ox_lib:notify', src, {type = 'error', description = "Not enough money", duration = 8000, position = 'top'})
+            end
+            break
         end
     end)
 
@@ -285,5 +305,16 @@ AddEventHandler('koe_jobsystem:setNewSalary', function(enteredSalary, jobToChang
     MySQL.query('UPDATE job_grades SET salary = @salary WHERE label = @label',{ ['@salary'] = enteredSalary, ['@label'] = jobToChangeSalary}, function()
 
     end)
-
+    
 end)
+
+function discordLog(name, message)
+    local data = {
+        {
+            ["color"] = '3553600',
+            ["title"] = "**".. name .."**",
+            ["description"] = message,
+        }
+    }
+    PerformHttpRequest(discord['webhook'], function(err, text, headers) end, 'POST', json.encode({username = discord['name'], embeds = data}), { ['Content-Type'] = 'application/json' })
+  end
